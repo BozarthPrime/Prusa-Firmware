@@ -3314,6 +3314,7 @@ extern uint8_t st_backlash_y;
 //!@n M Codes
 //!@n M0   - Unconditional stop - Wait for user to press a button on the LCD
 //!@n M1   - Same as M0
+//!@n M16  - Expected printer check
 //!@n M17  - Enable/Power all stepper motors
 //!@n M18  - Disable all stepper motors; same as M84
 //!@n M20  - List SD card
@@ -5251,6 +5252,19 @@ if(eSoundMode!=e_SOUND_MODE_SILENT)
         LCD_MESSAGERPGM(_T(WELCOME_MSG));
     }
     break;
+
+  #ifdef EXPECTED_PRINTER_CHECK
+    //! ### M16 - Expected printer check
+    // ---------------------------------
+    case 16:
+        if (strcmp(MACHINE_NAME, parser.string_arg) != 0) {
+          kill(PSTR(MSG_EXPECTED_PRINTER));
+        }
+      break;
+
+  #endif
+
+
 
     //! ### M17 - Enable axes
     // ---------------------------------

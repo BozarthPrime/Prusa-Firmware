@@ -441,6 +441,11 @@ your extruder heater takes 2 minutes to hit the target on heating.
   #define Z_PROBE_OFFSET_RANGE_MAX -5
 #endif
 
+// Enables the M16 gcode command that you can use in your start gcode to ensure
+// the gcode was sliced for the printer it is being run on. Checks a given name
+// against the MACHINE_NAME which can be set with CUSTOM_MACHINE_NAME
+#define EXPECTED_PRINTER_CHECK
+
 
 // EEPROM
 // The microcontroller can store settings in the EEPROM, e.g. max velocity...
