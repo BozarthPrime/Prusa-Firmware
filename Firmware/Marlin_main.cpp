@@ -5257,9 +5257,9 @@ if(eSoundMode!=e_SOUND_MODE_SILENT)
     //! ### M16 - Expected printer check
     // ---------------------------------
     case 16:
-        if (strcmp(MACHINE_NAME, parser.string_arg) != 0) {
-          kill(PSTR(MSG_EXPECTED_PRINTER));
-        }
+      if (strcmp("PMK3S", strchr_pointer + 4) != 0) {
+        kill(PSTR("INCORRECT PRINTER"));
+      }
       break;
 
   #endif
