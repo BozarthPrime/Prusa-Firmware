@@ -6,6 +6,9 @@
 #include "conv2str.h"
 #include "menu.h"
 #include "mesh_bed_calibration.h"
+#include "config.h"
+
+#include "config.h"
 
 extern void menu_lcd_longpress_func(void);
 extern void menu_lcd_charsetup_func(void);
@@ -20,9 +23,11 @@ void lcd_setstatuspgm(const char* message);
 //! - always returns the display to the main status screen
 //! - always makes lcd_reset (which is slow and causes flicker)
 //! - does not update the message if there is already one (i.e. lcd_status_message_level > 0)
+void lcd_setalertstatus(const char* message);
 void lcd_setalertstatuspgm(const char* message);
 //! only update the alert message on the main status screen
 //! has no sideeffects, may be called multiple times
+void lcd_updatestatus(const char *message);
 void lcd_updatestatuspgm(const char *message);
 
 void lcd_reset_alert_level();
@@ -47,12 +52,20 @@ unsigned char lcd_choose_color();
 void lcd_load_filament_color_check();
 //void lcd_mylang();
 
+extern void lcd_belttest();
 extern bool lcd_selftest();
 
 void lcd_menu_statistics(); 
 
+void lcd_status_screen();                         // NOT static due to using inside "Marlin_main" module ("manage_inactivity()")
 void lcd_menu_extruder_info();                    // NOT static due to using inside "Marlin_main" module ("manage_inactivity()")
 void lcd_menu_show_sensors_state();               // NOT static due to using inside "Marlin_main" module ("manage_inactivity()")
+
+#ifdef TMC2130
+bool lcd_crash_detect_enabled();
+void lcd_crash_detect_enable();
+void lcd_crash_detect_disable();
+#endif
 
 extern const char* lcd_display_message_fullscreen_P(const char *msg, uint8_t &nlines);
 extern const char* lcd_display_message_fullscreen_P(const char *msg);
@@ -129,6 +142,11 @@ extern uint8_t farm_status;
 #define SILENT_MODE_OFF SILENT_MODE_POWER
 #endif
 
+#ifdef IR_SENSOR_ANALOG
+extern bool bMenuFSDetect;
+void printf_IRSensorAnalogBoardChange();
+#endif //IR_SENSOR_ANALOG
+
 extern int8_t SilentModeMenu;
 extern uint8_t SilentModeMenu_MMU;
 
@@ -162,6 +180,8 @@ enum class FilamentAction : uint_least8_t
     MmuUnLoad,
     MmuEject,
     MmuCut,
+    Preheat,
+    Lay1Cal,
 };
 
 extern FilamentAction eFilamentAction;
@@ -170,7 +190,7 @@ extern bool bFilamentPreheatState;
 extern bool bFilamentAction;
 void mFilamentItem(uint16_t nTemp,uint16_t nTempBed);
 void mFilamentItemForce();
-void mFilamentMenu();
+void lcd_generic_preheat_menu();
 void unload_filament();
 
 void stack_error();
@@ -190,7 +210,9 @@ void lcd_wait_for_cool_down();
 void lcd_extr_cal_reset();
 
 void lcd_temp_cal_show_result(bool result);
+#ifdef PINDA_THERMISTOR
 bool lcd_wait_for_pinda(float temp);
+#endif //PINDA_THERMISTOR
 
 
 void bowden_menu();
@@ -208,7 +230,9 @@ void lcd_set_degree();
 void lcd_set_progress();
 #endif
 
+#if (LANG_MODE != 0)
 void lcd_language();
+#endif
 
 void lcd_wizard();
 bool lcd_autoDepleteEnabled();
@@ -216,22 +240,26 @@ bool lcd_autoDepleteEnabled();
 //! @brief Wizard state
 enum class WizState : uint8_t
 {
-    Run,            //!< run wizard? Entry point.
+    Run,            //!< run wizard? Main entry point.
     Restore,        //!< restore calibration status
-    Selftest,
+    Selftest,       //!< self test
     Xyz,            //!< xyz calibration
     Z,              //!< z calibration
-    IsFil,          //!< Is filament loaded? Entry point for 1st layer calibration
+    IsFil,          //!< Is filament loaded? First step of 1st layer calibration
     PreheatPla,     //!< waiting for preheat nozzle for PLA
     Preheat,        //!< Preheat for any material
-    Unload,         //!< Unload filament
-    LoadFil,        //!< Load filament
+    LoadFilCold,    //!< Load filament for MMU
+    LoadFilHot,     //!< Load filament without MMU
     IsPla,          //!< Is PLA filament?
-    Lay1Cal,        //!< First layer calibration
+    Lay1CalCold,    //!< First layer calibration, temperature not selected yet
+    Lay1CalHot,     //!< First layer calibration, temperature already selected
     RepeatLay1Cal,  //!< Repeat first layer calibration?
     Finish,         //!< Deactivate wizard
 };
 
 void lcd_wizard(WizState state);
+
+extern void lcd_experimental_toggle();
+extern void lcd_experimental_menu();
 
 #endif //ULTRALCD_H
